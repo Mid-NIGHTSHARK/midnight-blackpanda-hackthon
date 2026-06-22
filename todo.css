@@ -1,0 +1,110 @@
+/* todo.css
+ *
+ * Layout and visual theme for todo-tui.
+ * Uses Textual's built-in design tokens ($primary, $accent, etc.)
+ * so the app automatically inherits whatever theme the user has active.
+ */
+
+
+/* ── Root container ──────────────────────────────────────────────────────── */
+
+#app-container {
+    width: 80;
+    height: 32;
+    border: solid $primary;
+    background: $surface;
+    padding: 1 2;
+}
+
+
+/* ── ASCII header title ──────────────────────────────────────────────────── */
+
+#title-text {
+    width: 100%;
+    height: auto;
+    text-align: center;
+    color: $accent;
+    margin-bottom: 1;
+}
+
+
+/* ── Input row ───────────────────────────────────────────────────────────── */
+
+#input-container {
+    height: 3;
+    align: left middle;
+    margin-bottom: 1;
+}
+
+#task-input {
+    width: 75%;
+    height: 3;
+}
+
+#add-btn {
+    width: 25%;
+    height: 3;
+}
+
+
+/* ── Task list ───────────────────────────────────────────────────────────── */
+
+#task-list {
+    height: 1fr;
+    border: tall $accent;
+    background: $panel;
+}
+
+#task-list ListItem {
+    height: auto;
+    padding: 0;
+    background: transparent;
+}
+
+/* High-contrast highlight on keyboard-focused row */
+#task-list ListItem:focus {
+    background: $accent;
+    color: $background;
+}
+
+
+/* ── Individual task row ─────────────────────────────────────────────────── */
+
+.task-item-row {
+    height: 3;
+    align: left middle;
+    padding: 0 1;
+}
+
+.status-box {
+    height: 1;
+    color: $accent;
+    text-style: bold;
+    margin-right: 2;
+}
+
+.task-text {
+    width: 1fr;
+    height: 1;
+}
+
+
+/* ── Onboarding guide rows ───────────────────────────────────────────────── */
+
+.intro-item {
+    height: 1;
+    padding: 0 2;
+    color: $text-muted;
+}
+
+
+/* ── Completed task overrides ────────────────────────────────────────────── */
+
+.item-done .status-box {
+    color: $success;
+}
+
+.item-done .task-text {
+    color: $text-muted;
+    text-style: strike;
+}
