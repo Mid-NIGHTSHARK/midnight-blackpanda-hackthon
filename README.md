@@ -1,3 +1,8 @@
+---
+update: <img width="1326" height="956" alt="PHOTO-2026-07-02-18-01-16" src="https://github.com/user-attachments/assets/13a2f7ef-c307-46c5-8dfd-5761215accac" />
+https://hackathon.blackpandalabs.in/build-sprint-2026-results
+
+---
 # midnight-blackpanda-hackthon
 creating a hackathon project that is open  source. the idea is a to-do list cli with additional capability. its python project. its a full cli with mouse controls.
 
