@@ -1,6 +1,6 @@
 ---
-update: <img width="1326" height="956" alt="PHOTO-2026-07-02-18-01-16" src="https://github.com/user-attachments/assets/13a2f7ef-c307-46c5-8dfd-5761215accac" />
-https://hackathon.blackpandalabs.in/build-sprint-2026-results
+
+<img width="1326" height="956" alt="PHOTO-2026-07-02-18-01-16" src="https://github.com/user-attachments/assets/5ceaef46-5f9e-4684-9709-69a0dbf72955" />
 
 ---
 # midnight-blackpanda-hackthon
