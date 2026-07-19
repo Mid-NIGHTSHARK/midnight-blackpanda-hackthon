@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
 
 import pyfiglet
@@ -32,8 +31,6 @@ INTRO_LINES = [
 
 
 class TodoItem(ListItem):
-    """Single task row — owns its text, completion state, and layout."""
-
     def __init__(self, task_text: str, completed: bool = False) -> None:
         super().__init__()
         self.task_text = task_text
@@ -46,19 +43,14 @@ class TodoItem(ListItem):
             yield Label(self.task_text, classes="task-text")
 
     def on_mount(self) -> None:
-        # Apply the done styling class immediately for tasks loaded as completed
+        # in case this was loaded from disk already marked done
         if self.is_completed:
             self.add_class("item-done")
 
 
 class TodoApp(App):
-    """
-    Keyboard-first terminal todo manager built on Textual.
-
-    Every mutation (add, toggle, delete) is flushed to disk immediately
-    so you never lose work to an unexpected exit. Tasks survive restarts,
-    crashes, and closed terminals — no cloud, no account, no nonsense.
-    """
+    """Keyboard-driven todo list. Saves to tasks.json after every change
+    so closing the terminal (or it crashing) doesn't lose anything."""
 
     CSS_PATH = "todo.css"
     DB_FILE = Path("tasks.json")
@@ -91,10 +83,7 @@ class TodoApp(App):
     def on_mount(self) -> None:
         self.load_tasks()
 
-    # ── Persistence ────────────────────────────────────────────────────────────
-
     def load_tasks(self) -> None:
-        """Read tasks.json and hydrate the list. Shows intro guide if empty."""
         if not self.DB_FILE.exists():
             self._refresh_intro()
             return
@@ -108,14 +97,13 @@ class TodoApp(App):
                 task_list.append(
                     TodoItem(entry["text"], completed=entry.get("completed", False))
                 )
-
         except (json.JSONDecodeError, KeyError, OSError) as exc:
+            # don't crash the whole app just because the save file is busted
             logging.error("Failed to load %s: %s", self.DB_FILE, exc)
 
         self._refresh_intro()
 
     def save_tasks(self) -> None:
-        """Serialize current task state to disk. Logs on failure, never raises."""
         task_list = self.query_one("#task-list", ListView)
         payload = [
             {"text": item.task_text, "completed": item.is_completed}
@@ -127,13 +115,8 @@ class TodoApp(App):
         except OSError as exc:
             logging.error("Could not write %s: %s", self.DB_FILE, exc)
 
-    # ── List helpers ────────────────────────────────────────────────────────────
-
     def _refresh_intro(self) -> None:
-        """
-        Shows the onboarding guide when no real tasks exist.
-        Removes it the moment a TodoItem is present.
-        """
+        # show the little how-to-use list when there's nothing else to show
         task_list = self.query_one("#task-list", ListView)
 
         for child in list(task_list.children):
@@ -147,10 +130,7 @@ class TodoApp(App):
                 row.add_class("intro-item")
                 task_list.append(row)
 
-    # ── Task mutations ──────────────────────────────────────────────────────────
-
     def _add_task(self) -> None:
-        """Pull text from the input field, append a TodoItem, and save."""
         input_widget = self.query_one("#task-input", Input)
         text = input_widget.value.strip()
         if not text:
@@ -158,7 +138,6 @@ class TodoApp(App):
 
         task_list = self.query_one("#task-list", ListView)
 
-        # Clear the intro guide before the first real task lands
         if any(c.has_class("intro-item") for c in task_list.children):
             task_list.clear()
 
@@ -168,7 +147,6 @@ class TodoApp(App):
         self.save_tasks()
 
     def _toggle_task(self, item: TodoItem) -> None:
-        """Flip a task's completion state and sync to disk."""
         item.is_completed = not item.is_completed
         status_label = item.query_one(".status-box", Label)
 
@@ -181,8 +159,6 @@ class TodoApp(App):
 
         self.save_tasks()
 
-    # ── Event handlers ──────────────────────────────────────────────────────────
-
     @on(Button.Pressed, "#add-btn")
     def on_add_button(self) -> None:
         self._add_task()
@@ -193,14 +169,10 @@ class TodoApp(App):
 
     @on(ListView.Selected, "#task-list")
     def on_row_selected(self, event: ListView.Selected) -> None:
-        """Enter on a focused row toggles its completion state."""
         if isinstance(event.item, TodoItem):
             self._toggle_task(event.item)
 
-    # ── Keybind actions ─────────────────────────────────────────────────────────
-
     def action_toggle_item(self) -> None:
-        """Spacebar: toggle the highlighted task."""
         task_list = self.query_one("#task-list", ListView)
         if task_list.has_focus and task_list.index is not None:
             active = task_list.children[task_list.index]
@@ -208,7 +180,6 @@ class TodoApp(App):
                 self._toggle_task(active)
 
     def action_delete_item(self) -> None:
-        """D key: remove the highlighted task and keep the cursor position sane."""
         task_list = self.query_one("#task-list", ListView)
         if not (task_list.has_focus and task_list.index is not None):
             return
@@ -222,6 +193,7 @@ class TodoApp(App):
         active.remove()
         self.save_tasks()
 
+        # keep the cursor somewhere sensible after a delete
         remaining = list(task_list.children)
         if remaining:
             task_list.index = min(current_index, len(remaining) - 1)
@@ -229,7 +201,6 @@ class TodoApp(App):
         self._refresh_intro()
 
     def action_quit(self) -> None:
-        """Q key: explicit save-then-exit so nothing slips through."""
         self.save_tasks()
         self.exit()
 
